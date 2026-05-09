@@ -17,7 +17,7 @@ export default function Dashboard() {
         {/* Header */}
         <div className="flex justify-between items-center border-b border-slate-800 pb-6 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-[#0ea5e9]">leadwin.</h1>
+            <h1 className="text-2xl font-bold text-[#0ea5e9]">taskwin.</h1>
             <p className="text-gray-400 text-sm">Benvenuto nella tua area privata</p>
           </div>
           
@@ -31,7 +31,7 @@ export default function Dashboard() {
 
         {/* Card di benvenuto */}
         <div className="bg-[#0f172a] border border-slate-800 p-8 rounded-2xl shadow-xl">
-          <h2 className="text-xl font-semibold mb-2">Ciao, {user?.email}!</h2>
+          <h2 className="text-xl font-semibold mb-2 text-white">Ciao, {user?.user_metadata?.full_name || 'Utente'}</h2>
           <p className="text-gray-400">
             Il tuo sistema di gestione lead è pronto per essere configurato.
           </p>

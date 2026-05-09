@@ -3,45 +3,71 @@ import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 
 export default function Auth() {
+
+const passwordRequirements = [
+  { re: /.{8,}/, label: "Almeno 8 caratteri" },
+  { re: /[A-Z]/, label: "Una lettera maiuscola" },
+  { re: /[0-9]/, label: "Un numero" },
+  { re: /[^A-Za-z0-9]/, label: "Un carattere speciale" },
+];
+
   // Stato per capire se siamo in modalità "Login" o "Registrati"
   const [isLogin, setIsLogin] = useState(true);
   
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [fullName, setFullName] = useState('');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const navigate = useNavigate();
 
   const handleAuth = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    setMessage('');
+  e.preventDefault();
 
-    console.log("Tentativo di login con:", email);
 
-    if (isLogin) {
-      // Logica Accesso
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) setMessage(`Errore: ${error.message}`);
-      else navigate('/dashboard');
-    } else {
-      // Logica Registrazione
-      const { error } = await supabase.auth.signUp({ email, password });
-      if (error) setMessage(`Errore: ${error.message}`);
-      else setMessage('Controlla la tua email per confermare l\'account!');
+  if (!isLogin) {
+    const isPasswordValid = passwordRequirements.every(req => req.re.test(password));
+    if (!isPasswordValid) {
+      alert("La password non rispetta i requisiti di sicurezza!");
+      return;
     }
-    setLoading(false);
-  };
+  }
+
+  setLoading(true);
+  
+  if (isLogin) {
+    // Login invariato
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) alert(error.message);
+  } else {
+    // REGISTRAZIONE con Nome Completo
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: {
+          full_name: fullName,
+        }
+      }
+    });
+    
+    if (error) {
+      alert(error.message);
+    } else {
+      alert("Registrazione avvenuta!");
+    }
+  }
+  setLoading(false);
+};
 
   return (
     <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center p-4">
       {/* Logo */}
-      <div className="mb-10 text-center">
+      <div className="mb-5 text-center">
         <h1 className="text-5xl font-bold text-white tracking-tight">
-          lead<span className="text-[#0ea5e9]">win</span><span className="text-[#0ea5e9]">.</span>
+          <span className="text-white">task</span><span className="text-[#0ea5e9]">win</span><span className="text-[#0ea5e9]">.</span>
         </h1>
-        <p className="text-gray-400 mt-2 text-lg">L'intelligenza per il tuo business.</p>
       </div>
 
       <div className="bg-[#0f172a] border border-slate-800 p-8 rounded-[32px] w-full max-w-[440px] shadow-2xl">
@@ -63,8 +89,24 @@ export default function Auth() {
         </div>
 
         <form onSubmit={handleAuth} className="space-y-6">
+          {/*nome completo*/}
+
+          {!isLogin && (
+                <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-300">Nome Completo</label>
+                    <input
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                    className="w-full bg-[#020617] border border-slate-800 rounded-xl px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-[#0ea5e9] transition-all"
+                    placeholder="Mario Rossi"
+                    />
+                </div>
+          )}
+
           {/* Email */}
-          <div>
+          <div className="text-left">
             <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">Email</label>
             <div className="relative mt-1">
               <span className="absolute inset-y-0 left-4 flex items-center text-gray-500">
@@ -75,7 +117,7 @@ export default function Auth() {
               <input 
                 type="email" 
                 placeholder="mario@esempio.com" 
-                className="w-full bg-[#1e293b] border border-slate-700 text-white pl-12 pr-4 py-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-gray-600"
+                className="w-full bg-[#1e293b] border border-slate-700 text-white pl-12 pr-4 py-3 rounded-2xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all placeholder:text-gray-600"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
@@ -84,8 +126,8 @@ export default function Auth() {
           </div>
 
           {/* Password */}
-          <div className="space-y-2">
-  <label className="text-sm font-medium text-slate-300">Password</label>
+          <div className="space-y-2 text-left">
+            <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">Password</label>
   <div className="relative">
     <input
       type={showPassword ? "text" : "password"} // <--- Qui cambia dinamicamente
@@ -115,6 +157,21 @@ export default function Auth() {
     </button>
   </div>
 </div>
+{!isLogin && (
+            <div className="mt-3 grid grid-cols-2 gap-2">
+                {passwordRequirements.map((req, index) => {
+                const isPassed = req.re.test(password);
+                return (
+                    <div key={index} className="flex items-center gap-2">
+                    <div className={`h-1.5 w-1.5 rounded-full ${isPassed ? 'bg-green-500' : 'bg-slate-600'}`} />
+                    <span className={`text-[10px] ${isPassed ? 'text-green-500' : 'text-slate-500'}`}>
+                        {req.label}
+                    </span>
+                    </div>
+                );
+                })}
+            </div>
+            )}
 
           {isLogin && (
             <button type="button" className="text-[#0ea5e9] text-sm font-medium hover:underline ml-1 block">

@@ -24,7 +24,6 @@ export const AuthProvider = ({ children }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  // ✅ AGGIUNTA: definizione della funzione signOut
   const signOut = async () => {
     await supabase.auth.signOut();
   };
