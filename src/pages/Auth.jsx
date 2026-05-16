@@ -92,8 +92,8 @@ const passwordRequirements = [
           {/*nome completo*/}
 
           {!isLogin && (
-                <div className="space-y-2">
-                    <label className="text-sm font-medium text-slate-300">Nome Completo</label>
+                <div className="text-left">
+                    <label className="text-xs font-semibold text-gray-500 uppercase tracking-wider ml-1">Nome Completo</label>
                     <input
                     type="text"
                     value={fullName}
