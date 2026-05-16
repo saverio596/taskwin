@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '../supabaseClient';
 import { useNavigate } from 'react-router-dom';
 
@@ -18,36 +18,45 @@ export default function ResetPassword() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Con flowType: 'pkce', Supabase scambia il "code" dall'URL automaticamente
-    // e pubblica l'evento PASSWORD_RECOVERY tramite onAuthStateChange.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY') {
+    let isMounted = true;
+    let timeoutId = null;
+    let intervalId = null;
+
+    // Strategia: polling ogni 500ms per verificare se la sessione è apparsa,
+    // con un timeout massimo di 5 secondi prima di dichiarare errore.
+    // Questo è più robusto dell'ascoltare onAuthStateChange perché:
+    // - Non soffre del doppio mount di StrictMode
+    // - Non dipende dall'ordine degli eventi PKCE
+
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session && isMounted) {
         setIsReady(true);
         setErrorStatus(false);
-      }
-    });
-
-    // Fallback: controlla se la sessione esiste già al momento del mount
-    const checkExistingSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session) {
-        setIsReady(true);
-      } else {
-        // Diamo 2 secondi per ricevere l'evento PASSWORD_RECOVERY
-        setTimeout(async () => {
-          const { data: { session: retrySession } } = await supabase.auth.getSession();
-          if (retrySession) {
-            setIsReady(true);
-          } else {
-            setErrorStatus(true);
-          }
-        }, 2000);
+        clearInterval(intervalId);
+        clearTimeout(timeoutId);
       }
     };
 
-    checkExistingSession();
+    // Controlla subito
+    checkSession();
 
-    return () => subscription.unsubscribe();
+    // Poi continua a controllare ogni 500ms
+    intervalId = setInterval(checkSession, 500);
+
+    // Dopo 5 secondi, se non c'è sessione, dichiara errore
+    timeoutId = setTimeout(() => {
+      clearInterval(intervalId);
+      if (isMounted && !isReady) {
+        setErrorStatus(true);
+      }
+    }, 5000);
+
+    return () => {
+      isMounted = false;
+      clearInterval(intervalId);
+      clearTimeout(timeoutId);
+    };
   }, []);
 
   const handleReset = async (e) => {
