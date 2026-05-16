@@ -75,6 +75,22 @@ export default function Auth() {
     setLoading(false);
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          // Al termine del login con Google, l'utente verrà rispedito qui
+          redirectTo: window.location.origin + '/dashboard',
+        },
+      });
+
+      if (error) throw error;
+    } catch (error) {
+      alert("Errore durante il login con Google: " + error.message);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center p-4">
       {/* Logo */}
@@ -194,6 +210,7 @@ export default function Auth() {
             </div>
           )}
 
+
           {/* Sottotesto informativo (Solo in modalità recupero password) */}
           {authMode === 'forgot' && (
             <p className="text-sm text-gray-400 text-center px-2">
@@ -210,6 +227,33 @@ export default function Auth() {
             >
               Password dimenticata?
             </button>
+          )}
+
+
+          {authMode === 'login' && (
+            <>
+              <div className="relative flex items-center justify-center my-6">
+                <div className="flex-grow border-t border-slate-800"></div>
+                <span className="flex-shrink mx-4 text-xs font-semibold text-slate-500 uppercase tracking-wider bg-[#0f172a] px-2">
+                  Oppure
+                </span>
+                <div className="flex-grow border-t border-slate-800"></div>
+              </div>
+              <button
+                type="button"
+                onClick={handleGoogleLogin}
+                className="w-full flex items-center justify-center gap-3 bg-[#0f172a] hover:bg-slate-800 border border-slate-800 text-white font-medium py-3 rounded-xl transition-all"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24">
+                  {/* Icona SVG di Google */}
+                  <path fill="#EA4335" d="M12 5.04c1.64 0 3.12.56 4.28 1.67l3.2-3.2C17.52 1.58 14.96 1 12 1 7.35 1 3.42 3.66 1.48 7.55l3.8 2.94C6.2 7.55 8.9 5.04 12 5.04z" />
+                  <path fill="#4285F4" d="M23.49 12.27c0-.81-.07-1.59-.2-2.34H12v4.43h6.44c-.28 1.47-1.11 2.71-2.36 3.55l3.67 2.84c2.15-1.98 3.38-4.9 3.38-8.48z" />
+                  <path fill="#FBBC05" d="M5.28 14.81c-.24-.72-.38-1.49-.38-2.31s.14-1.59.38-2.31L1.48 7.25C.67 8.88.2 10.7.2 12.65c0 1.95.47 3.77 1.28 5.4l3.8-3.24z" />
+                  <path fill="#34A853" d="M12 23c3.24 0 5.97-1.08 7.96-2.91l-3.67-2.84c-1.1.74-2.51 1.18-4.29 1.18-3.1 0-5.8-2.51-6.73-5.45l-3.8 2.94C3.42 20.34 7.35 23 12 23z" />
+                </svg>
+                Accedi con Google
+              </button>
+            </>
           )}
 
           {/* Bottone Dinamico principale */}
