@@ -6,6 +6,7 @@ const AuthContext = createContext({});
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [isRecoverySession, setIsRecoverySession] = useState(false);
 
   useEffect(() => {
     const initializeAuth = async () => {
@@ -17,8 +18,16 @@ export const AuthProvider = ({ children }) => {
     initializeAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
+      console.log('AUTH EVENT:', event, session);
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecoverySession(true);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      } else {
+        setIsRecoverySession(false);
+        setUser(session?.user ?? null);
+        setLoading(false);
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -29,7 +38,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signOut }}>
+    <AuthContext.Provider value={{ user, loading, signOut, isRecoverySession }}>
       {children}
     </AuthContext.Provider>
   );

@@ -2,35 +2,41 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
 import Auth from './pages/Auth';
 import Dashboard from './pages/Dashboard';
+import ResetPassword from './pages/ResetPassword';
 import { ProtectedRoute } from './components/ProtectedRoute';
 
+// Dentro App.jsx
 function App() {
-  const { user, loading } = useAuth();
+  const { user, loading, isRecoverySession } = useAuth();
 
-  // Se sta caricando, mostriamo uno sfondo scuro per non far lampeggiare il login
   if (loading) {
     return <div className="min-h-screen bg-[#020617]"></div>;
   }
 
   return (
     <Routes>
-      {/* Se l'utente è loggato, questa rotta lo spinge SEMPRE in dashboard */}
+      {/* 1. SE SIAMO IN RECOVERY, mostriamo SEMPRE la pagina di reset a prescindere dall'URL */}
+      {isRecoverySession && (
+        <Route path="*" element={<ResetPassword />} />
+      )}
+
+      {/* 2. Rotte standard (attive solo se NON siamo in recovery) */}
       <Route 
         path="/login" 
         element={user ? <Navigate to="/dashboard" replace /> : <Auth />} 
       />
       
-      {/* Rotta protetta per la Dashboard */}
-      <Route 
-  path="/dashboard" 
-  element={
-    <ProtectedRoute>
-      <Dashboard />
-    </ProtectedRoute>
-  } 
-/>
+      <Route path="/reset-password" element={<ResetPassword />} />
 
-      {/* Gestione della Home e delle pagine inesistenti */}
+      <Route 
+        path="/dashboard" 
+        element={
+          <ProtectedRoute>
+            <Dashboard />
+          </ProtectedRoute>
+        } 
+      />
+
       <Route 
         path="/" 
         element={<Navigate to={user ? "/dashboard" : "/login"} replace />} 
