@@ -109,8 +109,10 @@ export default function ResetPassword() {
   return (
     <div className="min-h-screen bg-[#020617] flex flex-col items-center justify-center p-4 font-sans">
       <div className="bg-[#0f172a] border border-slate-800 p-8 rounded-[32px] w-full max-w-[440px] shadow-2xl text-center">
-        <h2 className="text-2xl font-bold text-white mb-2">Imposta una nuova password</h2>
-        <p className="text-xs text-slate-500 mb-6">Scegli una password sicura per il tuo account</p>
+        <div className="pb-5">
+          <h2 className="text-2xl font-bold text-white mb-2" style={{ color: "#fff" }}>Imposta una nuova password</h2>
+          <p className="text-xs text-slate-500 mb-6">Scegli una password sicura per il tuo account</p>
+        </div>
 
         <form onSubmit={handleReset} className="space-y-6">
           <div className="text-left space-y-2">
